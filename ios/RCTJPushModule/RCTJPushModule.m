@@ -16,6 +16,7 @@
 #define EXTRAS     @"extras"
 #define BADGE      @"badge"
 #define RING       @"ring"
+#define BROADCASTTIME @"broadcastTime"
 
 //本地角标
 #define APP_BADGE @"appBadge"
@@ -43,6 +44,12 @@
 #define NOTIFICATION_EVENT        @"NotificationEvent"
 //自定义消息
 #define CUSTOM_MESSAGE_EVENT      @"CustomMessageEvent"
+//应用内消息事件类型
+#define INAPP_MESSAGE_EVENT_TYPE   @"inappEventType"
+#define INAPP_MESSAGE_SHOW         @"inappShow"
+#define INAPP_MESSAGE_CLICK        @"inappClick"
+//应用内消息
+#define INAPP_MESSAGE_EVENT       @"InappMessageEvent"
 //本地通知
 #define LOCAL_NOTIFICATION_EVENT  @"LocalNotificationEvent"
 //连接状态
@@ -53,6 +60,7 @@
 #define PROPERTIES_EVENT           @"PropertiesEvent"
 //phoneNumber
 #define MOBILE_NUMBER_EVENT       @"MobileNumberEvent"
+
 
 @interface RCTJPushModule ()
 
@@ -117,6 +125,7 @@ RCT_EXPORT_MODULE(JPushModule);
     return self;
 }
 
+
 RCT_EXPORT_METHOD(setDebugMode: (BOOL *)enable)
 {
     if(enable){
@@ -145,6 +154,8 @@ RCT_EXPORT_METHOD(setupWithConfig:(NSDictionary *)params)
                [defaultCenter addObserver:self.bridge.delegate selector:@selector(networkDidReceiveMessage:) name:kJPFNetworkDidReceiveMessageNotification object:nil];
                // 地理围栏
                [JPUSHService registerLbsGeofenceDelegate:self.bridge.delegate withLaunchOptions:launchOptions];
+               // 应用内消息
+               [JPUSHService setInAppMessageDelegate:self];
            });
 
            NSMutableArray *notificationList = [RCTJPushEventQueue sharedInstance]._notificationQueue;
@@ -157,6 +168,7 @@ RCT_EXPORT_METHOD(setupWithConfig:(NSDictionary *)params)
            }
        }
 }
+
 
 RCT_EXPORT_METHOD(loadJS)
 {
@@ -176,6 +188,16 @@ RCT_EXPORT_METHOD(getRegisterId:(RCTResponseSenderBlock) callback)
         NSMutableDictionary *response = [[NSMutableDictionary alloc] init];
         [response setValue:registrationID?registrationID:@"" forKey:REGISTER_ID];
         callback(@[response]);
+    }];
+}
+
+RCT_EXPORT_METHOD(isNotificationEnabled:(RCTResponseSenderBlock) callback) {
+    [JPUSHService requestNotificationAuthorization:^(JPAuthorizationStatus status) {
+        if (status <= JPAuthorizationStatusDenied) {
+            callback(@[@(NO)]);
+        }else {
+            callback(@[@(YES)]);
+        }
     }];
 }
 
@@ -318,6 +340,35 @@ RCT_EXPORT_METHOD(cleanProperties:(NSDictionary *)params) {
     } seq:sequence];
 }
 
+// 应用内消息
+RCT_EXPORT_METHOD(pageEnterTo:(NSString *)pageName)
+{
+    [JPUSHService pageEnterTo:pageName];
+}
+
+RCT_EXPORT_METHOD(pageLeave:(NSString *)pageName)
+{
+    [JPUSHService pageLeave:pageName];
+}
+
+//应用内消息 代理
+- (void)jPushInAppMessageDidShow:(JPushInAppMessage *)inAppMessage {
+    NSDictionary *responseData = [self convertInappMsg:inAppMessage isShow:YES];
+    [self.bridge enqueueJSCall:@"RCTDeviceEventEmitter"
+                        method:@"emit"
+                          args:@[INAPP_MESSAGE_EVENT,responseData ]
+                    completion:NULL];
+    
+}
+
+- (void)jPushInAppMessageDidClick:(JPushInAppMessage *)inAppMessage {
+    NSDictionary *responseData = [self convertInappMsg:inAppMessage isShow:NO];
+    [self.bridge enqueueJSCall:@"RCTDeviceEventEmitter"
+                        method:@"emit"
+                          args:@[INAPP_MESSAGE_EVENT,responseData ]
+                    completion:NULL];
+}
+
 //badge 角标
 RCT_EXPORT_METHOD(setBadge:(NSDictionary *)params)
 {
@@ -372,14 +423,23 @@ RCT_EXPORT_METHOD(addNotification:(NSDictionary *)params)
     NSString *notificationContent = params[CONTENT]?params[CONTENT]:@"";
     content.title = notificationTitle;
     content.body = notificationContent;
+    if (@available(iOS 15.0, *)) {
+        content.interruptionLevel = 1;
+    } else {
+        // Fallback on earlier versions
+    }
     if(params[EXTRAS]){
         content.userInfo = @{MESSAGE_ID:messageID,TITLE:notificationTitle,CONTENT:notificationContent,EXTRAS:params[EXTRAS]};
     }else{
         content.userInfo = @{MESSAGE_ID:messageID,TITLE:notificationTitle,CONTENT:notificationContent};
     }
+    NSString *broadcastTime = params[BROADCASTTIME];
     JPushNotificationTrigger *trigger = [[JPushNotificationTrigger alloc] init];
     NSDateComponents *components = [[NSDateComponents alloc] init];
     NSDate *now = [NSDate date];
+    if (broadcastTime && [broadcastTime isKindOfClass:[NSString class]]) {
+        now = [NSDate dateWithTimeIntervalSince1970:[broadcastTime integerValue]/1000];
+    }
     NSCalendar *calendar = [NSCalendar currentCalendar];
     NSUInteger unitFlags = NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit | NSHourCalendarUnit | NSMinuteCalendarUnit | NSSecondCalendarUnit;
     NSDateComponents *dateComponent = [calendar components:unitFlags fromDate:now];
@@ -433,7 +493,7 @@ RCT_EXPORT_METHOD(setGeofeneceMaxCount:(NSDictionary *)params)
 //事件处理
 - (NSArray<NSString *> *)supportedEvents
 {
-    return @[CONNECT_EVENT,NOTIFICATION_EVENT,CUSTOM_MESSAGE_EVENT,LOCAL_NOTIFICATION_EVENT,TAG_ALIAS_EVENT,MOBILE_NUMBER_EVENT];
+    return @[CONNECT_EVENT,NOTIFICATION_EVENT,CUSTOM_MESSAGE_EVENT,LOCAL_NOTIFICATION_EVENT,TAG_ALIAS_EVENT,MOBILE_NUMBER_EVENT,INAPP_MESSAGE_EVENT];
 }
 
 //长连接登录
@@ -623,6 +683,19 @@ RCT_EXPORT_METHOD(setGeofeneceMaxCount:(NSDictionary *)params)
         responseData = @{MESSAGE_ID:messageID,TITLE:title,CONTENT:content};
     }
     return responseData;
+}
+
+- (NSDictionary *)convertInappMsg:(JPushInAppMessage *)inAppMessage isShow:(BOOL)isShow{
+    NSDictionary *result = @{
+        @"mesageId": inAppMessage.mesageId ?: @"",    // 消息id
+        @"title": inAppMessage.title ?:@"",       // 标题
+        @"content": inAppMessage.content ?: @"",    // 内容
+        @"target": inAppMessage.target ?: @[],      // 目标页面
+        @"clickAction": inAppMessage.clickAction ?: @"", // 跳转地址
+        @"extras": inAppMessage.extras ?: @{}, // 附加字段
+        INAPP_MESSAGE_EVENT_TYPE: isShow ? INAPP_MESSAGE_SHOW : INAPP_MESSAGE_CLICK // 类型
+    };
+    return result;
 }
 
 @end

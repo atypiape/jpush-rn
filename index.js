@@ -11,8 +11,10 @@ const ConnectEvent           = 'ConnectEvent'            //连接状态
 const NotificationEvent      = 'NotificationEvent'       //通知事件
 const LocalNotificationEvent = 'LocalNotificationEvent'  //本地通知事件
 const CustomMessageEvent     = 'CustomMessageEvent'      //自定义消息事件
+const InappMessageEvent      = 'InappMessageEvent'       //应用内消息事件
 const TagAliasEvent          = 'TagAliasEvent'           //TagAlias/Pros事件
 const MobileNumberEvent      = 'MobileNumberEvent'       //电话号码事件
+const CommandEvent      = 'CommandEvent'       //COMMAND事件
 
 export default class JPush {
 
@@ -253,6 +255,32 @@ export default class JPush {
             JPushModule.cleanProperties()
         }
     }
+
+
+  
+    /* 应用内消息，请配置pageEnterTo 和 pageLeave 方法，请配套使用
+    * 进入页面，pageName:页面名 String
+    * */
+    static pageEnterTo(pageName) {
+        if (Platform.OS == "android") {
+            
+        } else {
+            JPushModule.pageEnterTo(pageName)
+        }
+    }
+
+    /* 应用内消息，请配置pageEnterTo 和 pageLeave 方法，请配套使用
+    * 离开页面，pageName:页面名 String 
+    * */
+    static pageLeave(pageName) {
+        if (Platform.OS == "android") {
+            
+        } else {
+            JPushModule.pageLeave(pageName)
+        }
+    }
+
+
     //***************************************统计***************************************
 
     /*
@@ -296,6 +324,8 @@ export default class JPush {
     static isNotificationEnabled(callback){
         if (Platform.OS == "android"){
             JPushModule.isNotificationEnabled(callback)
+        } else {
+            JPushModule.isNotificationEnabled(callback)
         }
     }
 
@@ -304,7 +334,7 @@ export default class JPush {
     /*
     * 添加一个本地通知
     *
-    * @param {"messageID":String,"title":String，"content":String,"extras":{String:String}}
+    * @param {"messageID":String,"title":String，"content":String,"extras":{String:String},"broadcastTime":String}
     *
     * messageID:唯一标识通知消息的ID，可用于移除消息。
     * android用到的是int，ios用到的是String，rn这边提供接口的时候统一改成了String，然后android拿到String转int。输入messageID的时候需要int值范围在[1，2147483647]然后转成String。
@@ -312,6 +342,7 @@ export default class JPush {
     * title:对应“通知标题”字段
     *
     * content:对应“通知内容”字段
+    * broadcastTime：定时通知展示时间，需要把 时间戳(毫秒) 转为String 传入。
     *
     * extras:对应“附加内容”字段
     *
@@ -403,6 +434,13 @@ export default class JPush {
                 callback(result)
             })
     }
+    //CommandEvent 事件回调
+    static addCommandEventListener(callback) {
+        listeners[callback] = DeviceEventEmitter.addListener(
+                CommandEvent, result => {
+                callback(result)
+            })
+    }
 
     /*
     * 通知事件
@@ -473,6 +511,31 @@ export default class JPush {
     static addCustomMessageListener(callback) {
         listeners[callback] = DeviceEventEmitter.addListener(
             CustomMessageEvent, result => {
+                callback(result)
+            })
+    }
+
+    /*
+    * 应用内消息事件
+    *
+    * @param {Function} callback = (result) => {"mesageId":String，"title":String, "content":String, "target":String, "clickAction":String, extras":{String:String}}}
+    *
+    * messageID:唯一标识自定义消息的 ID
+    *
+    * title: 标题
+    *
+    * content:内容
+    *
+    * target:目标页面
+    *
+    * clickAction:跳转地址
+    *
+    * extras:附加字段
+    *
+    * */
+    static addInappMessageListener(callback) {
+        listeners[callback] = DeviceEventEmitter.addListener(
+            InappMessageEvent, result => {
                 callback(result)
             })
     }
@@ -625,6 +688,13 @@ export default class JPush {
             // setupWithOpion
         }
     }
+    static setChannelAndSound(params) {
+            if (Platform.OS == "android") {
+                JPushModule.setChannelAndSound(params)
+            } else {
+                // setupWithOpion
+            }
+        }
 
 
     //***************************************iOS Only***************************************

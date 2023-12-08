@@ -1,6 +1,9 @@
 
 package cn.jiguang.plugins.push;
-
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.net.Uri;
+import android.os.Build;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
@@ -22,6 +25,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.lang.*;
 
 import cn.jiguang.plugins.push.common.JConstants;
 import cn.jiguang.plugins.push.common.JLogger;
@@ -94,6 +98,32 @@ public class JPushModule extends ReactContextBaseJavaModule {
             JLogger.w(JConstants.PARAMS_ILLEGAL);
         } else {
             JPushInterface.setChannel(reactContext, channel);
+        }
+    }
+    @ReactMethod
+    public void setChannelAndSound(ReadableMap readableMap) {
+        if (readableMap == null) {
+            JLogger.w(JConstants.PARAMS_NULL);
+            return;
+        }
+        String channel = readableMap.getString(JConstants.CHANNEL);
+        String sound = readableMap.getString(JConstants.SOUND);
+        String channelId = readableMap.getString(JConstants.CHANNELID);
+        try {
+            NotificationManager manager= (NotificationManager) reactContext.getSystemService("notification");
+            if(Build.VERSION.SDK_INT<26){
+                return;
+            }
+            if(TextUtils.isEmpty(channel)||TextUtils.isEmpty(channelId)){
+                return;
+            }
+            NotificationChannel channel1=new NotificationChannel(channelId,channel, NotificationManager.IMPORTANCE_HIGH);
+            if(!TextUtils.isEmpty(sound)){
+                channel1.setSound(Uri.parse("android.resource://"+reactContext.getPackageName()+"/raw/"+sound),null);
+            }
+            manager.createNotificationChannel(channel1);
+            JPushInterface.setChannel(reactContext,channel);
+        }catch (Throwable throwable){
         }
     }
     @ReactMethod
@@ -433,10 +463,15 @@ public class JPushModule extends ReactContextBaseJavaModule {
         int id = Integer.valueOf(notificationID);
         String notificationTitle = readableMap.hasKey(JConstants.TITLE) ? readableMap.getString(JConstants.TITLE) : reactContext.getPackageName();
         String notificationContent = readableMap.hasKey(JConstants.CONTENT) ? readableMap.getString(JConstants.CONTENT) : reactContext.getPackageName();
+        String broadcastTime = readableMap.hasKey(JConstants.BROADCAST_TIME) ? readableMap.getString(JConstants.BROADCAST_TIME) : "0";
         JPushLocalNotification notification = new JPushLocalNotification();
         notification.setNotificationId(id);
         notification.setTitle(notificationTitle);
         notification.setContent(notificationContent);
+        try {
+            notification.setBroadcastTime(Long.parseLong(broadcastTime));
+        }catch (Throwable throwable){
+        }
         if (readableMap.hasKey(JConstants.EXTRAS)) {
             ReadableMap notificationExtra = readableMap.getMap(JConstants.EXTRAS);
             JSONObject notificationExtraJson = new JSONObject(notificationExtra.toHashMap());
