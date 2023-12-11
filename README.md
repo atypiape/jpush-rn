@@ -1,4 +1,4 @@
-# JPush-React-Native
+# jpush-rn
 
 ## ChangeLog
 
@@ -9,20 +9,20 @@
 ## 1. 安装
 
 ```
-npm install jpush-react-native --save
+npm install jpush-rn --save
 ```
 
-* 注意：如果项目里没有jcore-react-native，需要安装
+* 注意：如果项目里没有 jpush-rn，需要安装
 
   ```
-  npm install jcore-react-native --save
+  npm install jpush-rn --save
   ```
 安装完成后连接原生库
 进入到根目录执行<br/>
 react-native link<br/>
 或<br/>
-react-native link jpush-react-native<br/>
-react-native link jcore-react-native
+react-native link jpush-rn<br/>
+react-native link jpush-rn
 
 ## 2. 配置
 
@@ -46,18 +46,18 @@ react-native link jcore-react-native
   ```
   dependencies {
         ...
-        implementation project(':jpush-react-native')  // 添加 jpush 依赖
-        implementation project(':jcore-react-native')  // 添加 jcore 依赖
+        implementation project(':jpush-rn')  // 添加 jpush 依赖
+        implementation project(':jcore-rn')  // 添加 jcore 依赖
     }
   ```
 
 * setting.gradle
 
   ```
-  include ':jpush-react-native'
-  project(':jpush-react-native').projectDir = new File(rootProject.projectDir, '../node_modules/jpush-react-native/android')
-  include ':jcore-react-native'
-  project(':jcore-react-native').projectDir = new File(rootProject.projectDir, '../node_modules/jcore-react-native/android')
+  include ':jpush-rn'
+  project(':jpush-rn').projectDir = new File(rootProject.projectDir, '../node_modules/jpush-rn/android')
+  include ':jcore-rn'
+  project(':jcore-rn').projectDir = new File(rootProject.projectDir, '../node_modules/jcore-rn/android')
   ```
 
 * AndroidManifest.xml
@@ -92,8 +92,8 @@ pod install
 
   ```
   Add Files to "your project name"
-  node_modules/jcore-react-native/ios/RCTJCoreModule.xcodeproj
-  node_modules/jpush-react-native/ios/RCTJPushModule.xcodeproj
+  node_modules/jcore-rn/ios/RCTJCoreModule.xcodeproj
+  node_modules/jpush-rn/ios/RCTJPushModule.xcodeproj
   ```
 
 * Capabilities
@@ -106,8 +106,8 @@ pod install
 
   ```
   All --- Search Paths --- Header Search Paths --- +
-  $(SRCROOT)/../node_modules/jcore-react-native/ios/RCTJCoreModule/
-  $(SRCROOT)/../node_modules/jpush-react-native/ios/RCTJPushModule/
+  $(SRCROOT)/../node_modules/jcore-rn/ios/RCTJCoreModule/
+  $(SRCROOT)/../node_modules/jpush-rn/ios/RCTJPushModule/
   ```
 
 * Build Phases
@@ -124,19 +124,19 @@ pod install
 
 ### 3.1 Android
 
-参考：[MainApplication.java](https://github.com/jpush/jpush-react-native/tree/master/example/android/app/src/main/java/com/example/MainApplication.java)
+参考：[MainApplication.java](https://github.com/jpush/jpush-rn/tree/master/example/android/app/src/main/java/com/example/MainApplication.java)
 
 ### 3.2 iOS
 
-参考：[AppDelegate.m](https://github.com/jpush/jpush-react-native/tree/master/example/ios/example/AppDelegate.m) 
+参考：[AppDelegate.m](https://github.com/jpush/jpush-rn/tree/master/example/ios/example/AppDelegate.m) 
 
 ### 3.3 js
 
-参考：[App.js](https://github.com/jpush/jpush-react-native/blob/dev/example/App.js) 
+参考：[App.js](https://github.com/jpush/jpush-rn/blob/dev/example/App.js) 
 
 ## 4. API
 
-详见：[index.js](https://github.com/jpush/jpush-react-native/blob/master/index.js)
+详见：[index.js](https://github.com/jpush/jpush-rn/blob/master/index.js)
 
 ## 5.  其他
 
