@@ -17,5 +17,8 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.facebook.react:react-native:0.63.0'
+    implementation ('cn.jiguang.sdk:jpush:5.2.2') {
+        exclude group: 'cn.jiguang.sdk', module: 'jcore'   // 不再使用自动拉取的最新版 JCore
+    }
+    implementation 'com.facebook.react:react-native:+'
 }
