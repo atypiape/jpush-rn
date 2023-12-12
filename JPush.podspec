@@ -3,7 +3,7 @@ pjson = JSON.parse(File.read('package.json'))
 
 Pod::Spec.new do |s|
 
-  s.name            = "RCTJPush"
+  s.name            = "JPush"
   s.version         = pjson["version"]
   s.homepage        = pjson["homepage"]
   s.summary         = pjson["description"]
@@ -20,5 +20,4 @@ Pod::Spec.new do |s|
   s.libraries       = 'z','resolv'
   s.vendored_libraries = "ios/RCTJPushModule/*.a"
   s.dependency 'React'
-  s.dependency 'JPush'
 end
