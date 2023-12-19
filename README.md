@@ -58,6 +58,7 @@ android {
 ```
 
 * 修改 `android/app/src/main/AndroidManifest.xml`，添加以下内容：
+
 ```xml
 <meta-data
   android:name="JPUSH_CHANNEL"
@@ -76,21 +77,39 @@ android {
         <category android:name="${applicationId}" />
     </intent-filter>
 </service>
-  ```
+```
 
-  * 修改 `android/app/proguard-rules.pro`，添加以下内容：
+* 修改 `android/app/proguard-rules.pro`，添加以下内容：
 
-  ```groovy
-  -dontoptimize
-  -dontpreverify
+```groovy
+-dontoptimize
+-dontpreverify
 
-  -dontwarn cn.jpush.**
-  -keep class cn.jpush.** { *; }
-  -keep class * extends cn.jpush.android.service.JPushMessageService { *; }
+-dontwarn cn.jpush.**
+-keep class cn.jpush.** { *; }
+-keep class * extends cn.jpush.android.service.JPushMessageService { *; }
 
-  -dontwarn cn.jiguang.**
-  -keep class cn.jiguang.** { *; }
-  ```
+-dontwarn cn.jiguang.**
+-keep class cn.jiguang.** { *; }
+```
+
+#### 重新编译
+
+正常情况下，执行 `react-native run-android` 编译运行即可。
+
+如果报错，可以尝试清除缓存，再重新编译：
+
+```bash
+# 清除 Android 编译缓存
+cd android
+./gradlew clean
+rm -rf .gradle
+cd ..
+
+# 删除 node_modules 目录，重新安装依赖
+rm -rf node_modules
+npm install # 或者 yarn install
+```
 
 ### 3.2 iOS
 
@@ -100,7 +119,7 @@ android {
 cd ios
 pod install
 ```
-* 注意：如果项目里使用 `pod` 安装过，请先执行命令：
+如果报错，可尝试执行命令：
 
 ```bash
 pod deintegrate
