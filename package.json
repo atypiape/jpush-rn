@@ -6,7 +6,7 @@
   "types": "index.d.ts",
   "license": "ISC",
   "author": "Atypiape",
-  "version": "3.0.4-fix.1",
+  "version": "3.0.4-fix.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/atypiape/jpush-react-native"
@@ -16,7 +16,10 @@
     "jpush-rn",
     "react-native",
     "jiguang",
-    "JPush"
+    "JPush",
+    "极光",
+    "推送",
+    "极光推送"
   ],
   "peerDependencies": {
     "jcore-rn": ">= 2.1.3",
