@@ -93,7 +93,7 @@ android {
 -keep class cn.jiguang.** { *; }
 ```
 
-#### 重新编译
+**重新编译**
 
 正常情况下，执行 `react-native run-android` 编译运行即可。
 
