@@ -281,3 +281,6 @@ didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
 
 [官方文档](https://docs.jiguang.cn/jpush/client/iOS/ios_sdk#%E5%BA%94%E7%94%A8%E5%86%85%E6%B6%88%E6%81%AF)中有提到，应用内消息默认不展示，可通过[获取接口](https://docs.jiguang.cn/jpush/client/iOS/ios_api#%E8%8E%B7%E5%8F%96%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B6%88%E6%81%AF%E6%8E%A8%E9%80%81%E5%86%85%E5%AE%B9)自行编码处理。
 
+## 4. 点击通知，打开 URL/DeepLink
+
+如果想点击通知打开 URL 或 DeepLink，可以参考 `React Native` 官方文档的 [APIs - Linking](https://reactnative.dev/docs/linking) 部分。
