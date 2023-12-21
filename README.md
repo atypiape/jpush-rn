@@ -4,7 +4,7 @@
 
 ----
 
-为啥自己维护一份呢？因为官方 `jpush-react-native` 项目做得比较早，各方面更新比较慢。最初我跟着 `jpush-react-native` 文档配置，很多东西没生效，最后去看官方 Android [SDK 集成](https://docs.jiguang.cn/jpush/client/Android/android_guide)和 iOS [SDK 集成](https://docs.jiguang.cn/jpush/client/iOS/ios_guide_new)文档才恍然大悟。
+为啥自己维护一份呢？因为官方 `jpush-react-native` 项目做得比较早，各方面更新比较慢。最初我跟着 `jpush-react-native` 文档配置，很多东西没生效，最后去看官方 Android [SDK 集成](https://docs.jiguang.cn/jpush/client/Android/android_guide)和 iOS [SDK 集成](https://docs.jiguang.cn/jpush/client/iOS/ios_guide_new)文档才恍然大悟。我把这部分的配置说明写在本文档下方，希望对你有帮助。
 
 如果有一点 Android 和 iOS 开发经验，建议也去看下官方的[客户端 SDK](https://docs.jiguang.cn/jpush/client/)文档，很多问题在里面都可以找到答案。
 
@@ -36,11 +36,15 @@ yarn add jcore-rn jpush-rn
 
 `iOS` 使用 `Cocoapods` 自动导入 [JPush](https://cocoapods.org/pods/JPush) SDK，当前版本为 `5.2.0`。
 
-## 3. 配置 (React Native 0.60 及以上版本)
+## 3. 配置
 
-*备注：如果你的项目是 `0.59` 及以下版本，请参考  [jpush-react-native](https://www.npmjs.com/package/jpush-react-native) 中的手动配置方式。*
+### 3.1 Android
 
-### 3.1. Android
+#### 3.1.1 链接静态库
+
+React Native 0.60 及以上版本是自动链接的，无需理会。如果你的项目是 `0.59` 及以下版本，请参考 [jpush-react-native](https://www.npmjs.com/package/jpush-react-native) 中的手动配置方式。
+
+#### 3.1.2 添加 JPush 配置
 
 * 修改 `android/build.gradle`，添加以下内容：
 
@@ -93,7 +97,7 @@ android {
 -keep class cn.jiguang.** { *; }
 ```
 
-**重新编译**
+#### 3.1.3 重新编译项目
 
 正常情况下，执行 `react-native run-android` 编译运行即可。
 
@@ -113,14 +117,167 @@ npm install # 或者 yarn install
 
 ### 3.2 iOS
 
-在 `ios` 目录下执行以下命令：
+#### 3.2.1 链接静态库
+
+React Native 0.60 及以上版本，只需执行下面的命令即可。如果你的项目是 `0.59` 及以下版本，请参考 [jpush-react-native](https://www.npmjs.com/package/jpush-react-native) 中的手动配置方式。
 
 ```bash
 cd ios
 pod install
 ```
+
 如果报错，可尝试执行命令：
 
 ```bash
 pod deintegrate
 ```
+
+#### 3.2.2 添加 JPush 配置
+
+**引入头文件**
+
+将以下代码添加到 `AppDelegate.m` 引用头文件的位置
+
+```objc
+// 引入 jpush-rn 模块头文件
+#import <RCTJPushModule.h>
+// iOS10 注册 APNs 所需头文件
+#ifdef NSFoundationVersionNumber_iOS_9_x_Max
+#import <UserNotifications/UserNotifications.h>
+#endif
+// 如果需要使用 idfa 功能，引入所需要的头文件（可选）
+// #import <AdSupport/AdSupport.h>
+```
+**添加初始化 APNs 代码**
+
+将以下代码添加到 `AppDelegate.m` 文件的 `-(BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions` 中：
+
+```objc
+// Required, 初始化 APNs
+JPUSHRegisterEntity *entity = [[JPUSHRegisterEntity alloc] init];
+if (@available(iOS 12.0, *)) {
+  entity.types = JPAuthorizationOptionAlert | JPAuthorizationOptionBadge |
+                 JPAuthorizationOptionSound |
+                 JPAuthorizationOptionProvidesAppNotificationSettings;
+}
+[JPUSHService
+    registerForRemoteNotificationConfig:entity
+                               delegate:(id<JPUSHRegisterDelegate>)self];
+```
+
+**注册 APNs 成功回调方法，并上报 DeviceToken**
+
+将以下代码添加到 `AppDelegate.m` 文件中：
+
+```objc
+- (void)application:(UIApplication *)application
+didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
+
+  /// Required - 注册 DeviceToken
+  [JPUSHService registerDeviceToken:deviceToken];
+}
+```
+
+**添加处理 APNs 通知回调方法**
+
+将以下代码添加到 `AppDelegate.m` 文件中：
+
+```objc
+// iOS 12 Support
+- (void)jpushNotificationCenter:(UNUserNotificationCenter *)center
+    openSettingsForNotification:(UNNotification *)notification {
+  if (notification && [notification.request.trigger
+                          isKindOfClass:[UNPushNotificationTrigger class]]) {
+    // 从通知界面直接进入应用
+  } else {
+    // 从通知设置界面进入应用
+  }
+}
+
+// iOS 10 Support
+- (void)jpushNotificationCenter:(UNUserNotificationCenter *)center
+        willPresentNotification:(UNNotification *)notification
+          withCompletionHandler:(void (^)(NSInteger))completionHandler {
+  NSDictionary *userInfo = notification.request.content.userInfo;
+  if ([notification.request.trigger
+          isKindOfClass:[UNPushNotificationTrigger class]]) {
+    // APNs 通知
+    [JPUSHService handleRemoteNotification:userInfo];
+    // 传递给 React Native
+    [[NSNotificationCenter defaultCenter]
+        postNotificationName:J_APNS_NOTIFICATION_ARRIVED_EVENT
+                      object:userInfo];
+  } else {
+    // 本地通知
+    // 传递给 React Native
+    [[NSNotificationCenter defaultCenter]
+        postNotificationName:J_LOCAL_NOTIFICATION_ARRIVED_EVENT
+                      object:userInfo];
+  }
+  // 需要执行这个方法，选择是否提醒用户，有 Badge、Sound、Alert 三种类型可以选择设置
+  completionHandler(UNNotificationPresentationOptionAlert);
+}
+
+// iOS 10 Support
+- (void)jpushNotificationCenter:(UNUserNotificationCenter *)center
+    didReceiveNotificationResponse:(UNNotificationResponse *)response
+             withCompletionHandler:(void (^)(void))completionHandler {
+  NSDictionary *userInfo = response.notification.request.content.userInfo;
+  if ([response.notification.request.trigger
+          isKindOfClass:[UNPushNotificationTrigger class]]) {
+    [JPUSHService handleRemoteNotification:userInfo];
+    // 保障应用被杀死状态下，用户点击推送消息，打开app后可以收到点击通知事件
+    [[RCTJPushEventQueue sharedInstance]._notificationQueue
+        insertObject:userInfo
+             atIndex:0];
+    // 传递给 React Native
+    [[NSNotificationCenter defaultCenter]
+        postNotificationName:J_APNS_NOTIFICATION_OPENED_EVENT
+                      object:userInfo];
+  } else {
+    // 本地通知
+    // 保障应用被杀死状态下，用户点击推送消息，打开app后可以收到点击通知事件
+    [[RCTJPushEventQueue sharedInstance]._localNotificationQueue
+        insertObject:userInfo
+             atIndex:0];
+    // 传递给 React Native
+    [[NSNotificationCenter defaultCenter]
+        postNotificationName:J_LOCAL_NOTIFICATION_OPENED_EVENT
+                      object:userInfo];
+  }
+  completionHandler();
+}
+
+- (void)application:(UIApplication *)application
+    didReceiveRemoteNotification:(NSDictionary *)userInfo
+          fetchCompletionHandler:
+              (void (^)(UIBackgroundFetchResult))completionHandler {
+  // Required, iOS 7 Support
+  [JPUSHService handleRemoteNotification:userInfo];
+  // 传递给 React Native
+  [[NSNotificationCenter defaultCenter]
+      postNotificationName:J_APNS_NOTIFICATION_ARRIVED_EVENT
+                    object:userInfo];
+  completionHandler(UIBackgroundFetchResultNewData);
+}
+
+- (void)application:(UIApplication *)application
+    didReceiveRemoteNotification:(NSDictionary *)userInfo {
+
+  // Required, For systems with less than or equal to iOS 6
+  [JPUSHService handleRemoteNotification:userInfo];
+}
+
+// 自定义消息
+- (void)networkDidReceiveMessage:(NSNotification *)notification {
+  NSDictionary *userInfo = [notification userInfo];
+  [[NSNotificationCenter defaultCenter]
+      postNotificationName:J_CUSTOM_NOTIFICATION_EVENT
+                    object:userInfo];
+}
+```
+
+**关于应用内消息**
+
+[官方文档](https://docs.jiguang.cn/jpush/client/iOS/ios_sdk#%E5%BA%94%E7%94%A8%E5%86%85%E6%B6%88%E6%81%AF)中有提到，应用内消息默认不展示，可通过[获取接口](https://docs.jiguang.cn/jpush/client/iOS/ios_api#%E8%8E%B7%E5%8F%96%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B6%88%E6%81%AF%E6%8E%A8%E9%80%81%E5%86%85%E5%AE%B9)自行编码处理。
+
