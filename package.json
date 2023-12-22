@@ -1,15 +1,15 @@
 {
   "name": "jpush-rn",
   "description": "极光推送 JPush SDK 的 React Native 封装，支持 Android 和 iOS (Fork of jpush-react-native)",
-  "homepage":"https://github.com/atypiape/jpush-react-native",
+  "homepage":"https://github.com/atypiape/jpush-rn",
   "main": "index.js",
   "types": "index.d.ts",
   "license": "ISC",
   "author": "Atypiape",
-  "version": "3.0.4-fix.5",
+  "version": "3.0.4-fix.6",
   "repository": {
     "type": "git",
-    "url": "https://github.com/atypiape/jpush-react-native"
+    "url": "https://github.com/atypiape/jpush-rn"
   },
   "keywords": [
     "jpush-react-native",
