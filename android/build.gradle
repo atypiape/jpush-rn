@@ -5,6 +5,7 @@ def safeExtGet(prop, fallback) {
 }
 
 android {
+    namespace 'cn.jiguang.plugins.push'
     compileSdkVersion safeExtGet('compileSdkVersion', 33)
     defaultConfig {
         minSdkVersion safeExtGet('minSdkVersion', 21)
