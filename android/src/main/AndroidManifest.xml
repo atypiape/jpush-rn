@@ -14,6 +14,7 @@
     <!-- Optional. Required for location feature -->
     <!-- 为了提高sdk识别唯一用户的能力，保证消息推送的精准送达，建议集成以下权限（可选）-->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <!-- 注掉 QUERY_ALL_PACKAGES 避免应用市场审核失败 -->
     <!-- <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/> -->
     <uses-permission android:name="android.permission.GET_TASKS" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
