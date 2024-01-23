@@ -4,11 +4,13 @@
 
 ----
 
-为啥自己维护一份呢？因为官方 `jpush-react-native` 项目做得比较早，各方面更新比较慢。最初我跟着 `jpush-react-native` 文档配置，很多东西没生效，最后去看官方 Android [SDK 集成](https://docs.jiguang.cn/jpush/client/Android/android_guide)和 iOS [SDK 集成](https://docs.jiguang.cn/jpush/client/iOS/ios_guide_new)文档才恍然大悟。我把这部分的配置说明写在本文档下方，希望对你有帮助。
+为啥自己维护一份呢？因为官方 `jpush-react-native` 项目做得比较早，各方面更新比较慢。最初我跟着 `jpush-react-native` 文档配置，很多东西没生效，最后去看官方 [Android SDK 集成](https://docs.jiguang.cn/jpush/client/Android/android_guide)和 [iOS SDK 集成](https://docs.jiguang.cn/jpush/client/iOS/ios_guide_new)文档才恍然大悟。我把这部分的配置说明写在本文档下方，希望对你有帮助。
 
 如果有一点 Android 和 iOS 开发经验，建议也去看下官方的[客户端 SDK](https://docs.jiguang.cn/jpush/client/)文档，很多问题在里面都可以找到答案。
 
 有疑问或者本项目存在问题，请在 [Issues](https://github.com/atypiape/jpush-rn/issues) 中反馈，非常感谢。
+
+**备注：** 对 Android 14 (API 34) 做了适配。
 
 ## 1. 安装
 

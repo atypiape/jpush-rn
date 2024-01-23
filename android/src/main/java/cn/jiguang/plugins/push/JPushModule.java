@@ -2,6 +2,9 @@
 package cn.jiguang.plugins.push;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Build;
 import android.app.Activity;
@@ -12,6 +15,7 @@ import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -35,20 +39,46 @@ import cn.jpush.android.api.BasicPushNotificationBuilder;
 import cn.jpush.android.api.JPushInterface;
 import cn.jpush.android.data.JPushLocalNotification;
 
-public class JPushModule extends ReactContextBaseJavaModule {
+public class JPushModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
 
     public static ReactApplicationContext reactContext;
 
     public static boolean isAppForeground = false;
 
+    public BroadcastReceiver mReceiver = new JPushBroadcastReceiver();
+
+    public boolean mIsReceiverRegistered = false;
+
     public JPushModule(ReactApplicationContext reactApplicationContext) {
         super(reactContext);
         reactContext = reactApplicationContext;
+        reactContext.addLifecycleEventListener(this);
     }
 
     @Override
     public String getName() {
         return "JPushModule";
+    }
+
+    @Override
+    public void onHostResume() {
+        // Activity `onResume`
+        JLogger.d("onHostResume");
+        isAppForeground = true;
+        compatRegisterReceiver(false);
+    }
+
+    @Override
+    public void onHostPause() {
+        // Activity `onPause`
+        JLogger.d("onHostPause");
+        isAppForeground = false;
+    }
+
+    @Override
+    public void onHostDestroy() {
+        // Activity `onDestroy`
+        JLogger.d("onHostDestroy");
     }
 
     @ReactMethod
@@ -588,44 +618,69 @@ public class JPushModule extends ReactContextBaseJavaModule {
 
     //*****************************应用前后台状态监听*****************************
     public static void registerActivityLifecycle(Application application) {
-        application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
-            @Override
-            public void onActivityCreated(Activity activity, Bundle bundle) {
-                JLogger.d("onActivityCreated");
-            }
+        // application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+        //     @Override
+        //     public void onActivityCreated(Activity activity, Bundle bundle) {
+        //         JLogger.d("onActivityCreated");
+        //     }
 
-            @Override
-            public void onActivityStarted(Activity activity) {
-                JLogger.d("onActivityStarted");
-            }
+        //     @Override
+        //     public void onActivityStarted(Activity activity) {
+        //         JLogger.d("onActivityStarted");
+        //     }
 
-            @Override
-            public void onActivityResumed(Activity activity) {
-                JLogger.d("onActivityResumed");
-                isAppForeground = true;
-            }
+        //     @Override
+        //     public void onActivityResumed(Activity activity) {
+        //         JLogger.d("onActivityResumed");
+        //         isAppForeground = true;
+        //     }
 
-            @Override
-            public void onActivityPaused(Activity activity) {
-                JLogger.d("onActivityPaused");
-                isAppForeground = false;
-            }
+        //     @Override
+        //     public void onActivityPaused(Activity activity) {
+        //         JLogger.d("onActivityPaused");
+        //         isAppForeground = false;
+        //     }
 
-            @Override
-            public void onActivityStopped(Activity activity) {
-                JLogger.d("onActivityStopped");
-            }
+        //     @Override
+        //     public void onActivityStopped(Activity activity) {
+        //         JLogger.d("onActivityStopped");
+        //     }
 
-            @Override
-            public void onActivitySaveInstanceState(Activity activity, Bundle bundle) {
-                JLogger.d("onActivitySaveInstanceState");
-            }
+        //     @Override
+        //     public void onActivitySaveInstanceState(Activity activity, Bundle bundle) {
+        //         JLogger.d("onActivitySaveInstanceState");
+        //     }
 
-            @Override
-            public void onActivityDestroyed(Activity activity) {
-                JLogger.d("onActivityDestroyed");
-            }
-        });
+        //     @Override
+        //     public void onActivityDestroyed(Activity activity) {
+        //         JLogger.d("onActivityDestroyed");
+        //     }
+        // });
     }
 
+    /**
+     * Starting with Android 14, apps and services that target Android 14 and use context-registered
+     * receivers are required to specify a flag to indicate whether or not the receiver should be
+     * exported to all other apps on the device: either RECEIVER_EXPORTED or RECEIVER_NOT_EXPORTED
+     *
+     * <p>https://developer.android.com/about/versions/14/behavior-changes-14#runtime-receivers-exported
+     */
+    private void compatRegisterReceiver(boolean exported) {
+        if (mIsReceiverRegistered) {
+            return;
+        }
+        mIsReceiverRegistered = true;
+        JLogger.d("registerReceiver on Android SDK " + Build.VERSION.SDK_INT);
+
+        IntentFilter filter = new IntentFilter();
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
+        filter.addAction(reactContext.getPackageName() + ".permission.JPUSH_MESSAGE");
+        
+        if (Build.VERSION.SDK_INT >= 34 && reactContext.getApplicationInfo().targetSdkVersion >= 34) {
+            reactContext.registerReceiver(
+                mReceiver, filter, exported ? Context.RECEIVER_EXPORTED : Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            reactContext.registerReceiver(mReceiver, filter);
+        }
+    }
 }
