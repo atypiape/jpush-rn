@@ -20,5 +20,5 @@ Pod::Spec.new do |s|
   s.libraries       = 'z','resolv'
   s.vendored_libraries = "ios/RCTJPushModule/*.a"
   s.dependency 'React'
-  s.dependency 'JPush', "5.3.0"
+  s.dependency 'JPush', "5.5.0"
 end

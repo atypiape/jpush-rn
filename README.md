@@ -79,7 +79,7 @@ android {
     android:enabled="true"
     android:exported="false" >
     <intent-filter>
-        <action android:name="cn.jpush.android.intent.SERVICE_MESSAGE" />
+        <action android:name="cn.jpush.android.intent.RECEIVER_MESSAGE" />
         <category android:name="${applicationId}" />
     </intent-filter>
 </service>
@@ -93,7 +93,7 @@ android {
 
 -dontwarn cn.jpush.**
 -keep class cn.jpush.** { *; }
--keep class * extends cn.jpush.android.service.JPushMessageService { *; }
+-keep class * extends cn.jpush.android.service.JPushMessageReceiver { *; }
 
 -dontwarn cn.jiguang.**
 -keep class cn.jiguang.** { *; }
@@ -143,6 +143,7 @@ pod deintegrate
 ```objc
 // 引入 jpush-rn 模块头文件
 #import <RCTJPushModule.h>
+#import "JPUSHService.h"
 // iOS10 注册 APNs 所需头文件
 #ifdef NSFoundationVersionNumber_iOS_9_x_Max
 #import <UserNotifications/UserNotifications.h>
@@ -194,60 +195,6 @@ didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
   } else {
     // 从通知设置界面进入应用
   }
-}
-
-// iOS 10 Support
-- (void)jpushNotificationCenter:(UNUserNotificationCenter *)center
-        willPresentNotification:(UNNotification *)notification
-          withCompletionHandler:(void (^)(NSInteger))completionHandler {
-  NSDictionary *userInfo = notification.request.content.userInfo;
-  if ([notification.request.trigger
-          isKindOfClass:[UNPushNotificationTrigger class]]) {
-    // APNs 通知
-    [JPUSHService handleRemoteNotification:userInfo];
-    // 传递给 React Native
-    [[NSNotificationCenter defaultCenter]
-        postNotificationName:J_APNS_NOTIFICATION_ARRIVED_EVENT
-                      object:userInfo];
-  } else {
-    // 本地通知
-    // 传递给 React Native
-    [[NSNotificationCenter defaultCenter]
-        postNotificationName:J_LOCAL_NOTIFICATION_ARRIVED_EVENT
-                      object:userInfo];
-  }
-  // 需要执行这个方法，选择是否提醒用户，有 Badge、Sound、Alert 三种类型可以选择设置
-  completionHandler(UNNotificationPresentationOptionAlert);
-}
-
-// iOS 10 Support
-- (void)jpushNotificationCenter:(UNUserNotificationCenter *)center
-    didReceiveNotificationResponse:(UNNotificationResponse *)response
-             withCompletionHandler:(void (^)(void))completionHandler {
-  NSDictionary *userInfo = response.notification.request.content.userInfo;
-  if ([response.notification.request.trigger
-          isKindOfClass:[UNPushNotificationTrigger class]]) {
-    [JPUSHService handleRemoteNotification:userInfo];
-    // 保障应用被杀死状态下，用户点击推送消息，打开app后可以收到点击通知事件
-    [[RCTJPushEventQueue sharedInstance]._notificationQueue
-        insertObject:userInfo
-             atIndex:0];
-    // 传递给 React Native
-    [[NSNotificationCenter defaultCenter]
-        postNotificationName:J_APNS_NOTIFICATION_OPENED_EVENT
-                      object:userInfo];
-  } else {
-    // 本地通知
-    // 保障应用被杀死状态下，用户点击推送消息，打开app后可以收到点击通知事件
-    [[RCTJPushEventQueue sharedInstance]._localNotificationQueue
-        insertObject:userInfo
-             atIndex:0];
-    // 传递给 React Native
-    [[NSNotificationCenter defaultCenter]
-        postNotificationName:J_LOCAL_NOTIFICATION_OPENED_EVENT
-                      object:userInfo];
-  }
-  completionHandler();
 }
 
 - (void)application:(UIApplication *)application

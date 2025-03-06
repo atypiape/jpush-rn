@@ -126,7 +126,7 @@ RCT_EXPORT_MODULE(JPushModule);
 }
 
 
-RCT_EXPORT_METHOD(setDebugMode: (BOOL *)enable)
+RCT_EXPORT_METHOD(setDebugMode: (BOOL)enable)  // (BOOL *) 改为 (BOOL)，否则 JavaScript 无法传 boolean 值
 {
     if(enable){
         [JPUSHService setDebugMode];
@@ -147,13 +147,13 @@ RCT_EXPORT_METHOD(setupWithConfig:(NSDictionary *)params)
                if (@available(iOS 12.0, *)) {
                  entity.types = JPAuthorizationOptionAlert|JPAuthorizationOptionBadge|JPAuthorizationOptionSound|JPAuthorizationOptionProvidesAppNotificationSettings;
                }
-               [JPUSHService registerForRemoteNotificationConfig:entity delegate:self.bridge.delegate];
+               [JPUSHService registerForRemoteNotificationConfig:entity delegate:[[UIApplication sharedApplication] delegate]];
                [launchOptions objectForKey: UIApplicationLaunchOptionsRemoteNotificationKey];
                // 自定义消息
                NSNotificationCenter *defaultCenter = [NSNotificationCenter defaultCenter];
-               [defaultCenter addObserver:self.bridge.delegate selector:@selector(networkDidReceiveMessage:) name:kJPFNetworkDidReceiveMessageNotification object:nil];
+               [defaultCenter addObserver:[[UIApplication sharedApplication] delegate] selector:@selector(networkDidReceiveMessage:) name:kJPFNetworkDidReceiveMessageNotification object:nil];
                // 地理围栏
-               [JPUSHService registerLbsGeofenceDelegate:self.bridge.delegate withLaunchOptions:launchOptions];
+               [JPUSHService registerLbsGeofenceDelegate:[[UIApplication sharedApplication] delegate] withLaunchOptions:launchOptions];
                // 应用内消息
                [JPUSHService setInAppMessageDelegate:self];
            });
@@ -350,6 +350,39 @@ RCT_EXPORT_METHOD(pageLeave:(NSString *)pageName)
 {
     [JPUSHService pageLeave:pageName];
 }
+
+// 合规
+RCT_EXPORT_METHOD(setCollectControl:(NSDictionary *)params)
+{
+   JPushCollectControl *control = [[JPushCollectControl alloc] init];
+    BOOL gps = YES;
+    BOOL cell = YES;
+    BOOL bssid = YES;
+    BOOL ssid = YES;
+    if (params[@"gps"] && [params[@"gps"] isKindOfClass:[NSNumber class]]) {
+        gps = [params[@"gps"] boolValue];
+    }
+    if (params[@"cell"] && [params[@"cell"] isKindOfClass:[NSNumber class]]) {
+        cell = [params[@"cell"] boolValue];
+    }
+    if (params[@"bssid"] && [params[@"bssid"] isKindOfClass:[NSNumber class]]) {
+        bssid = [params[@"bssid"] boolValue];
+    }
+    if (params[@"ssid"] && [params[@"ssid"] isKindOfClass:[NSNumber class]]) {
+        ssid = [params[@"ssid"] boolValue];
+    }
+    control.gps = gps;
+    control.cell = cell;
+    control.bssid = bssid;
+    control.ssid = ssid;
+    [JPUSHService setCollectControl:control];
+}
+
+RCT_EXPORT_METHOD(setSmartPushEnable:(BOOL)enable) // (BOOL *) 改为 (BOOL)，否则 JavaScript 无法传 boolean 值
+{
+    [JPUSHService setSmartPushEnable:enable];
+}
+
 
 //应用内消息 代理
 - (void)jPushInAppMessageDidShow:(JPushInAppMessage *)inAppMessage {
