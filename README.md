@@ -10,7 +10,9 @@
 
 有疑问或者本项目存在问题，请在 [Issues](https://github.com/atypiape/jpush-rn/issues) 中反馈，非常感谢。
 
-**备注：** 对 Android 14 (API 34) 做了适配。
+**备注：** 
+- 对 Android 14 (API 34) 做了适配。
+- 修复 iOS 报错："JPushModule.setDebugMode(): Error while converting JavaScript argument 0 to Objective C type BOOL. Objective C type BOOL is unsupported."
 
 ## 1. 安装
 
