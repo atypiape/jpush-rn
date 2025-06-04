@@ -34,11 +34,11 @@ yarn add jcore-rn jpush-rn
 
 ### 2.1. Android
 
-`Android` 使用 `mavenCentral` 自动集成 [JPush](https://mvnrepository.com/artifact/cn.jiguang.sdk/jpush) SDK，当前版本为 `5.6.0`。
+`Android` 使用 `mavenCentral` 自动集成 [JPush](https://mvnrepository.com/artifact/cn.jiguang.sdk/jpush) SDK，当前版本为 `5.7.0`。
 
 ### 2.2. iOS
 
-`iOS` 使用 `Cocoapods` 自动导入 [JPush](https://cocoapods.org/pods/JPush) SDK，当前版本为 `5.5.0`。
+`iOS` 使用 `Cocoapods` 自动导入 [JPush](https://cocoapods.org/pods/JPush) SDK，当前版本为 `5.6.0`。
 
 ## 3. 配置
 
