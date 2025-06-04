@@ -3,7 +3,7 @@ pjson = JSON.parse(File.read('package.json'))
 
 Pod::Spec.new do |s|
 
-  s.name            = "RCTJPush"
+  s.name            = "JPushRN"
   s.version         = pjson["version"]
   s.homepage        = pjson["homepage"]
   s.summary         = pjson["description"]
@@ -18,7 +18,6 @@ Pod::Spec.new do |s|
   s.frameworks      = 'UIKit','CFNetwork','CoreFoundation','CoreTelephony','SystemConfiguration','CoreGraphics','Foundation','Security'
   s.weak_frameworks = 'UserNotifications'
   s.libraries       = 'z','resolv'
-  s.vendored_libraries = "ios/RCTJPushModule/*.a"
+  s.vendored_frameworks = "ios/RCTJPushModule/*.xcframework"
   s.dependency 'React'
-  s.dependency 'JPush', "5.5.0"
 end

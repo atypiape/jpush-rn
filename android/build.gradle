@@ -20,8 +20,5 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation ('cn.jiguang.sdk:jpush:5.6.0') {
-        exclude group: 'cn.jiguang.sdk', module: 'jcore'   // 不再使用自动拉取的最新版 JCore
-    }
     implementation 'com.facebook.react:react-native:+'
 }
