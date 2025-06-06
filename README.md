@@ -50,6 +50,8 @@ React Native 0.60 及以上版本是自动链接的，无需理会。如果你�
 
 #### 3.1.2 添加 JPush 配置
 
+_\(参考 https://docs.jiguang.cn/jpush/client/Android/android_guide\)_
+
 * 修改 `android/build.gradle`，添加以下内容：
 
 ```groovy
@@ -58,6 +60,7 @@ android {
         applicationId "yourApplicationId"   // 在此替换你的应用包名
         ...
         manifestPlaceholders = [
+            JPUSH_PKGNAME : applicationId,
             JPUSH_APPKEY: "yourAppKey",     // 在此替换你的 APPKey
             JPUSH_CHANNEL: "yourChannel"    // 在此替换你的 channel
         ]
@@ -68,23 +71,18 @@ android {
 * 修改 `android/app/src/main/AndroidManifest.xml`，添加以下内容：
 
 ```xml
+<!-- Required. For publish channel feature -->
+<!-- JPUSH_CHANNEL 是为了方便开发者统计 APK 分发渠道。-->
+<!-- 例如: -->
+<!-- 发到 Google Play 的 APK 可以设置为 google-play; -->
+<!-- 发到其他市场的 APK 可以设置为 xxx-market。 -->
 <meta-data
   android:name="JPUSH_CHANNEL"
   android:value="${JPUSH_CHANNEL}" />
+<!-- Required. AppKey copied from Portal -->
 <meta-data
   android:name="JPUSH_APPKEY"
   android:value="${JPUSH_APPKEY}" />
-    
-<!-- Required since 5.2.0, 用于接收应用内消息等 -->
-<service
-    android:name="cn.jiguang.plugins.push.receiver.JPushModuleReceiver"
-    android:enabled="true"
-    android:exported="false" >
-    <intent-filter>
-        <action android:name="cn.jpush.android.intent.RECEIVER_MESSAGE" />
-        <category android:name="${applicationId}" />
-    </intent-filter>
-</service>
 ```
 
 * 修改 `android/app/proguard-rules.pro`，添加以下内容：
@@ -137,6 +135,8 @@ pod deintegrate
 ```
 
 #### 3.2.2 添加 JPush 配置
+
+_\(参考 https://docs.jiguang.cn/jpush/client/iOS/ios_guide_new\)_
 
 **引入头文件**
 
