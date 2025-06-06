@@ -50,7 +50,7 @@ React Native 0.60 及以上版本是自动链接的，无需理会。如果你�
 
 #### 3.1.2 添加 JPush 配置
 
-_\(参考 https://docs.jiguang.cn/jpush/client/Android/android_guide\)_
+_\(参考 https://docs.jiguang.cn/jpush/client/Android/android_guide)_
 
 * 修改 `android/build.gradle`，添加以下内容：
 
@@ -136,7 +136,7 @@ pod deintegrate
 
 #### 3.2.2 添加 JPush 配置
 
-_\(参考 https://docs.jiguang.cn/jpush/client/iOS/ios_guide_new\)_
+_\(参考 https://docs.jiguang.cn/jpush/client/iOS/ios_guide_new)_
 
 **引入头文件**
 
