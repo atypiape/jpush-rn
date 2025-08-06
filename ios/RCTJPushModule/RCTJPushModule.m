@@ -126,7 +126,7 @@ RCT_EXPORT_MODULE(JPushModule);
 }
 
 
-RCT_EXPORT_METHOD(setDebugMode: (BOOL)enable)  // (BOOL *) 改为 (BOOL)，否则 JavaScript 无法传 boolean 值
+RCT_EXPORT_METHOD(setDebugMode: (BOOL )enable)
 {
     if(enable){
         [JPUSHService setDebugMode];
@@ -378,7 +378,7 @@ RCT_EXPORT_METHOD(setCollectControl:(NSDictionary *)params)
     [JPUSHService setCollectControl:control];
 }
 
-RCT_EXPORT_METHOD(setSmartPushEnable:(BOOL)enable) // (BOOL *) 改为 (BOOL)，否则 JavaScript 无法传 boolean 值
+RCT_EXPORT_METHOD(setSmartPushEnable:(BOOL )enable)
 {
     [JPUSHService setSmartPushEnable:enable];
 }

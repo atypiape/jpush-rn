@@ -96,6 +96,7 @@ public class JPushModule extends ReactContextBaseJavaModule implements Lifecycle
             JPushHelper.sendEvent(JConstants.NOTIFICATION_EVENT, writableMap);
             JPushBroadcastReceiver.NOTIFICATION_BUNDLE = null;
         }
+        JPushInterface.setNotificationCallBackEnable(reactContext,true);
     }
 
     @ReactMethod
@@ -568,6 +569,47 @@ public class JPushModule extends ReactContextBaseJavaModule implements Lifecycle
             JSONObject notificationExtraJson = new JSONObject(notificationExtra.toHashMap());
             notification.setExtras(notificationExtraJson.toString());
         }
+
+        // 设置BuilderId
+        if (readableMap.hasKey(JConstants.BUILDER_NAME)) {
+            try {
+                String layoutFileName = readableMap.getString(JConstants.BUILDER_NAME);
+                if (!TextUtils.isEmpty(layoutFileName)) {
+                    // 通过布局文件名获取资源ID
+                    int builderId = reactContext.getResources().getIdentifier(
+                        layoutFileName, 
+                        "layout", 
+                        reactContext.getPackageName()
+                    );
+                    if (builderId != 0) {
+                        notification.setBuilderId(builderId);
+                    } else {
+                        JLogger.w("Layout file not found: " + layoutFileName);
+                    }
+                }
+            } catch (Exception e) {
+                JLogger.w("Failed to set BuilderId: " + e.getMessage());
+            }
+        }
+
+        // 设置Category
+        if (readableMap.hasKey(JConstants.CATEGORY)) {
+            String category = readableMap.getString(JConstants.CATEGORY);
+            if (!TextUtils.isEmpty(category)) {
+                notification.setCategory(category);
+            }
+        }
+
+        // 设置Priority
+        if (readableMap.hasKey(JConstants.PRIORITY)) {
+            try {
+                int priority = readableMap.getInt(JConstants.PRIORITY);
+                notification.setPriority(priority);
+            } catch (Exception e) {
+                JLogger.w("Priority must be a number");
+            }
+        }
+
         JPushInterface.addLocalNotification(reactContext, notification);
     }
 
@@ -679,44 +721,44 @@ public class JPushModule extends ReactContextBaseJavaModule implements Lifecycle
 
     //*****************************应用前后台状态监听*****************************
     public static void registerActivityLifecycle(Application application) {
-        // application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
-        //     @Override
-        //     public void onActivityCreated(Activity activity, Bundle bundle) {
-        //         JLogger.d("onActivityCreated");
-        //     }
+        application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+            @Override
+            public void onActivityCreated(Activity activity, Bundle bundle) {
+                JLogger.d("onActivityCreated");
+            }
 
-        //     @Override
-        //     public void onActivityStarted(Activity activity) {
-        //         JLogger.d("onActivityStarted");
-        //     }
+            @Override
+            public void onActivityStarted(Activity activity) {
+                JLogger.d("onActivityStarted");
+            }
 
-        //     @Override
-        //     public void onActivityResumed(Activity activity) {
-        //         JLogger.d("onActivityResumed");
-        //         isAppForeground = true;
-        //     }
+            @Override
+            public void onActivityResumed(Activity activity) {
+                JLogger.d("onActivityResumed");
+                isAppForeground = true;
+            }
 
-        //     @Override
-        //     public void onActivityPaused(Activity activity) {
-        //         JLogger.d("onActivityPaused");
-        //         isAppForeground = false;
-        //     }
+            @Override
+            public void onActivityPaused(Activity activity) {
+                JLogger.d("onActivityPaused");
+                isAppForeground = false;
+            }
 
-        //     @Override
-        //     public void onActivityStopped(Activity activity) {
-        //         JLogger.d("onActivityStopped");
-        //     }
+            @Override
+            public void onActivityStopped(Activity activity) {
+                JLogger.d("onActivityStopped");
+            }
 
-        //     @Override
-        //     public void onActivitySaveInstanceState(Activity activity, Bundle bundle) {
-        //         JLogger.d("onActivitySaveInstanceState");
-        //     }
+            @Override
+            public void onActivitySaveInstanceState(Activity activity, Bundle bundle) {
+                JLogger.d("onActivitySaveInstanceState");
+            }
 
-        //     @Override
-        //     public void onActivityDestroyed(Activity activity) {
-        //         JLogger.d("onActivityDestroyed");
-        //     }
-        // });
+            @Override
+            public void onActivityDestroyed(Activity activity) {
+                JLogger.d("onActivityDestroyed");
+            }
+        });
     }
 
     /**
